@@ -1,3 +1,14 @@
+##############################################################################
+# In the Kivy Documentation under kivy.uix.FileChooser there is an Example
+# on how to create a Popup Window that browses files and folders. It loads
+# a file and saves a file.  It's in Python Code but it uses the KIVY KV
+# langugae file.  Below is the same example as close as I could get it in
+# pure PYTHON CODE.
+#
+#
+# by Edmund Witkowski June 21, 2020
+##############################################################################
+
 #######################################################
 #######################################################
 
@@ -29,7 +40,6 @@ class LoadDialog():
         self.BoxLay2 = BoxLayout()
         self.BCancel = Button()
         self.BLoad   = Button()
-        
         return
 
     #############################
@@ -64,6 +74,7 @@ class LoadDialog():
             self.BoxLay2.add_widget(self.BCancel)
         #############################################
         self.BLoad.text = 'Load'
+        # Using the embedded function Lambda avoids a Kivy Bug that throws an error
         self.BLoad.bind(on_release=lambda x:Restore.RootDialog.load(self.FCL.path, self.FCL.selection))
         # Kivy Bug the following Line throws an Assertion Error about None
         #self.BLoad.bind(on_release = Restore.RootDialog.load(self.FCL.path, self.FCL.selection))
@@ -128,6 +139,7 @@ class SaveDialog():
             self.BoxLay2.add_widget(self.BCancel)
         #############################################
         self.BSave.text = 'Save'
+        # Using the embedded function Lambda avoids a Kivy Bug that throws an error
         self.BSave.bind(on_release=lambda x:Restore.RootDialog.save(self.FCL.path, self.TIinput.text))
         # Kivy Bug the following Line throws an Assertion Error about None
         #self.BSave.bind(on_release = Restore.RootDialog.save(self.FCL.path, self.TIinput.text))
@@ -247,7 +259,18 @@ class Root_FLC(FloatLayout):
 
 #######################################################
 #######################################################
-
+# The ORIGINAL Code used...
+# Factory.register('Root', cls=Root)
+# Factory.register('LoadDialog', cls=LoadDialog)
+# Factory.register('SaveDialog', cls=SaveDialog)
+#
+# But there is so little documentation explaining the
+# purpose or advantages to using thie Factory.register
+# Function so I just removed it because I couldn't
+# figure out why it was necessary.
+#
+#######################################################
+        
 class Restore(App):
     RootDialog = Root_FLC()
     LoadDialog = LoadDialog()
