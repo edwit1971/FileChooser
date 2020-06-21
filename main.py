@@ -69,20 +69,20 @@ class LoadDialog():
             self.BoxLay1.add_widget(self.BoxLay2)
         #############################################
         self.BCancel.text = 'Cancel'
-        self.BCancel.bind(on_release = Restore.RootDialog.cancel)
+        self.BCancel.bind(on_release = Editor1.RootDialog.cancel)
         if(self.BCancel.parent == None):
             self.BoxLay2.add_widget(self.BCancel)
         #############################################
         self.BLoad.text = 'Load'
         # Using the embedded function Lambda avoids a Kivy Bug that throws an error
-        self.BLoad.bind(on_release=lambda x:Restore.RootDialog.load(self.FCL.path, self.FCL.selection))
+        self.BLoad.bind(on_release=lambda x:Editor1.RootDialog.load(self.FCL.path, self.FCL.selection))
         # Kivy Bug the following Line throws an Assertion Error about None
-        #self.BLoad.bind(on_release = Restore.RootDialog.load(self.FCL.path, self.FCL.selection))
+        #self.BLoad.bind(on_release = Editor1.RootDialog.load(self.FCL.path, self.FCL.selection))
         if(self.BLoad.parent == None):
             self.BoxLay2.add_widget(self.BLoad)
         #############################################
         return
-
+    
 #######################################################
 #######################################################
 
@@ -134,15 +134,15 @@ class SaveDialog():
             self.BoxLay1.add_widget(self.BoxLay2)
         #############################################
         self.BCancel.text = 'Cancel'
-        self.BCancel.bind(on_release = Restore.RootDialog.cancel)
+        self.BCancel.bind(on_release = Editor1.RootDialog.cancel)
         if(self.BCancel.parent == None):
             self.BoxLay2.add_widget(self.BCancel)
         #############################################
         self.BSave.text = 'Save'
         # Using the embedded function Lambda avoids a Kivy Bug that throws an error
-        self.BSave.bind(on_release=lambda x:Restore.RootDialog.save(self.FCL.path, self.TIinput.text))
+        self.BSave.bind(on_release=lambda x:Editor1.RootDialog.save(self.FCL.path, self.TIinput.text))
         # Kivy Bug the following Line throws an Assertion Error about None
-        #self.BSave.bind(on_release = Restore.RootDialog.save(self.FCL.path, self.TIinput.text))
+        #self.BSave.bind(on_release = Editor1.RootDialog.save(self.FCL.path, self.TIinput.text))
         if(self.BSave.parent == None):
             self.BoxLay2.add_widget(self.BSave)
         #############################################
@@ -208,29 +208,20 @@ class Root_FLC(FloatLayout):
             self.BoxLay3.add_widget(self.TIinput)
         return
     
-    def cancel(self, instance):
-        self.dismiss_popup()
-        return
-    
-    def dismiss_popup(self):
-        if(Root_FLC.Pop1.parent != None):
-            Root_FLC.Pop1.dismiss()
-        return
-
     def show_load(self, instance):
-        Restore.LoadDialog.Load_Init()
+        Editor1.LoadDialog.Load_Init()
         ############################################
         # Content MUST point to a Parent-LESS Widget
-        content = Restore.LoadDialog.Win_To_Draw
+        content = Editor1.LoadDialog.Win_To_Draw
         Root_FLC.Pop1 = Popup(title="Load file", content=content, size_hint=(0.75, 0.75))
         Root_FLC.Pop1.open()
         return
 
     def show_save(self, instance):
-        Restore.SaveDialog.Save_Init()
+        Editor1.SaveDialog.Save_Init()
         ############################################
         # Content MUST point to a Parent-LESS Widget
-        content = Restore.SaveDialog.Win_To_Draw
+        content = Editor1.SaveDialog.Win_To_Draw
         Root_FLC.Pop1 = Popup(title="Save file", content=content, size_hint=(0.75, 0.75))
         Root_FLC.Pop1.open()
         return
@@ -257,6 +248,35 @@ class Root_FLC(FloatLayout):
         self.dismiss_popup()
         return
 
+    def cancel(self, instance):
+        self.dismiss_popup()
+        return
+
+    def dismiss_popup(self):
+        if(Root_FLC.Pop1.parent != None):
+            self.Clean_Memory()
+            Root_FLC.Pop1.dismiss()
+        return
+
+    def Clean_Memory(self):
+        ##############################################################
+        # Even with this function there is still a MEMRORY LEAK which
+        # I believe to be a KIVY BUG inherent with the Popup Widget
+        # so be aware there is a memory leak as the popup opens and
+        # closes and opens and closes repeatedly
+        ##############################################################
+        Editor1.SaveDialog.BoxLay2.clear_widgets()
+        Editor1.SaveDialog.BoxLay1.clear_widgets()
+        Editor1.SaveDialog.Win_To_Draw.clear_widgets()
+        Editor1.LoadDialog.BoxLay2.clear_widgets()
+        Editor1.LoadDialog.BoxLay1.clear_widgets()
+        Editor1.LoadDialog.Win_To_Draw.clear_widgets()
+        Root_FLC.Pop1.clear_widgets()
+        Root_FLC.Pop1.dismiss()
+        Editor1.SaveDialog.Win_To_Draw.parent = None
+        Editor1.LoadDialog.Win_To_Draw.parent = None
+        return
+
 #######################################################
 #######################################################
 # The ORIGINAL Code used...
@@ -271,26 +291,20 @@ class Root_FLC(FloatLayout):
 #
 #######################################################
         
-class Restore(App):
+class Editor1(App):
     RootDialog = Root_FLC()
     LoadDialog = LoadDialog()
     SaveDialog = SaveDialog()
     
-    #############################
-    def __init__(self, **kwargs):
-        super(Restore, self).__init__(**kwargs)
-        return
-    
-    #############################
     def build(self):
-        Restore.RootDialog.Root_Init()
-        return Restore.RootDialog
+        Editor1.RootDialog.Root_Init()
+        return Editor1.RootDialog
 
 #######################################################
 #######################################################
 
 if __name__ == '__main__':
-    Restore().run()
+    Editor1().run()
 
 #######################################################
 #######################################################
