@@ -40,6 +40,8 @@ class LoadDialog():
         self.BoxLay2 = BoxLayout()
         self.BCancel = Button()
         self.BLoad   = Button()
+        self.Bind_Cancel = None
+        self.Bind_Load   = None
         return
 
     #############################
@@ -69,20 +71,27 @@ class LoadDialog():
             self.BoxLay1.add_widget(self.BoxLay2)
         #############################################
         self.BCancel.text = 'Cancel'
-        self.BCancel.bind(on_release = Editor1.RootDialog.cancel)
+        self.Bind_Cancel = self.BCancel.fbind('on_release', self.Press_Cancel)
         if(self.BCancel.parent == None):
             self.BoxLay2.add_widget(self.BCancel)
         #############################################
         self.BLoad.text = 'Load'
-        # Using the embedded function Lambda avoids a Kivy Bug that throws an error
-        self.BLoad.bind(on_release=lambda x:Editor1.RootDialog.load(self.FCL.path, self.FCL.selection))
-        # Kivy Bug the following Line throws an Assertion Error about None
-        #self.BLoad.bind(on_release = Editor1.RootDialog.load(self.FCL.path, self.FCL.selection))
+        self.Bind_Load = self.BLoad.fbind('on_release', self.Press_Load)
         if(self.BLoad.parent == None):
             self.BoxLay2.add_widget(self.BLoad)
         #############################################
         return
-    
+
+    #############################
+    def Press_Load(self, instance):
+        Editor1.RootDialog.load(self.FCL.path, self.FCL.selection)
+        return
+
+    #############################
+    def Press_Cancel(self, instance):
+        Editor1.RootDialog.cancel(instance)
+        return
+
 #######################################################
 #######################################################
 
@@ -98,6 +107,8 @@ class SaveDialog():
         self.BoxLay2 = BoxLayout()
         self.BCancel = Button()
         self.BSave   = Button()
+        self.Bind_Cancel = None
+        self.Bind_Save   = None
         return
 
     #############################
@@ -117,7 +128,6 @@ class SaveDialog():
         #############################################
         self.FCL.size_hint_y = None
         self.FCL.height      = int(self.Win_To_Draw.height * 0.8)
-        self.FCL.bind(on_selection = self.Press_Save)
         if(self.FCL.parent == None):
             self.BoxLay1.add_widget(self.FCL)
         #############################################
@@ -134,27 +144,25 @@ class SaveDialog():
             self.BoxLay1.add_widget(self.BoxLay2)
         #############################################
         self.BCancel.text = 'Cancel'
-        self.BCancel.bind(on_release = Editor1.RootDialog.cancel)
+        self.Bind_Cancel = self.BCancel.fbind('on_release', self.Press_Cancel)
         if(self.BCancel.parent == None):
             self.BoxLay2.add_widget(self.BCancel)
         #############################################
         self.BSave.text = 'Save'
-        # Using the embedded function Lambda avoids a Kivy Bug that throws an error
-        self.BSave.bind(on_release=lambda x:Editor1.RootDialog.save(self.FCL.path, self.TIinput.text))
-        # Kivy Bug the following Line throws an Assertion Error about None
-        #self.BSave.bind(on_release = Editor1.RootDialog.save(self.FCL.path, self.TIinput.text))
+        self.Bind_Save = self.BSave.fbind('on_release', self.Press_Save)
         if(self.BSave.parent == None):
             self.BoxLay2.add_widget(self.BSave)
         #############################################
         return
     
     #############################
-    def Press_Save(self):
-        max = len(self.FCL.selection)
-        if(max > 0):
-            self.TIinput.text = self.FCL.selection[0]
-        else:
-            self.TIinput.text = ''
+    def Press_Save(self, instance):
+        Editor1.RootDialog.save(self.FCL.path, self.TIinput.text,  self.FCL.selection)
+        return
+
+    #############################
+    def Press_Cancel(self, instance):
+        Editor1.RootDialog.cancel(instance)
         return
 
 #######################################################
@@ -228,24 +236,31 @@ class Root_FLC(FloatLayout):
 
     def load(self, pPath='', filename=None):
         self.TIinput.text = ''
-        if(filename != None):
-            max = len(filename)
-            if(max > 0):
+        max = len(filename)
+        if(max > 0):
+            if(filename[0] != ''):
                 if(os.path.isdir(pPath)):
                     str = os.path.join(pPath, filename[0])
                     if(os.path.isfile(str)):
                         with open(str) as stream:
                             self.TIinput.text = stream.read()
-        self.dismiss_popup()
+                            self.dismiss_popup()
         return
 
-    def save(self, pPath='', filename=None):
-        if(filename != None):
+    def save(self, pPath='', filename1=None, filename2=None):
+        filename = ''
+        max = len(filename2)
+        if(filename1 != ''):
+            filename = filename1
+        elif(max > 0):
+            if(filename2[0] != ''):
+                filename = filename2[0]
+        if(filename != ''):
             if(os.path.isdir(pPath)):
                 str = os.path.join(pPath, filename)
                 with open(str, 'w') as stream:
                     stream.write(self.TIinput.text)
-        self.dismiss_popup()
+                    self.dismiss_popup()
         return
 
     def cancel(self, instance):
@@ -265,6 +280,14 @@ class Root_FLC(FloatLayout):
         # so be aware there is a memory leak as the popup opens and
         # closes and opens and closes repeatedly
         ##############################################################
+        if((Editor1.LoadDialog.Bind_Load is not False) and (Editor1.LoadDialog.Bind_Load is not None)):
+            Editor1.LoadDialog.BLoad.unbind_uid('on_release', Editor1.LoadDialog.Bind_Load)
+        if((Editor1.LoadDialog.Bind_Cancel is not False) and (Editor1.LoadDialog.Bind_Cancel is not None)):
+            Editor1.LoadDialog.BCancel.unbind_uid('on_release', Editor1.LoadDialog.Bind_Cancel)
+        if((Editor1.SaveDialog.Bind_Save is not False) and (Editor1.SaveDialog.Bind_Save is not None)):
+            Editor1.SaveDialog.BSave.unbind_uid('on_release', Editor1.SaveDialog.Bind_Save)
+        if((Editor1.SaveDialog.Bind_Cancel is not False) and (Editor1.SaveDialog.Bind_Cancel is not None)):
+            Editor1.SaveDialog.BCancel.unbind_uid('on_release', Editor1.SaveDialog.Bind_Cancel)
         Editor1.SaveDialog.BoxLay2.clear_widgets()
         Editor1.SaveDialog.BoxLay1.clear_widgets()
         Editor1.SaveDialog.Win_To_Draw.clear_widgets()
